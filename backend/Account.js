@@ -5,15 +5,15 @@ class Account {
     }
 
     deposit(amount) {
-        if (amount <= 0) {
-            throw new Error('L\'importo del deposito deve essere positivo.');
+        if (amount <= 0 || amount <= 200 || amount > 1000) {
+            throw new Error('Errore di depositazione.');
         }
         this.balance += amount;
     }
 
     withdraw(amount) {
         if (amount <= 0) {
-            throw new Error('L\'importo del prelievo deve essere positivo.');
+            throw new Error('Errore di importazione.');
         }
         if (amount > this.balance) {
             throw new Error('Fondi insufficienti.');
