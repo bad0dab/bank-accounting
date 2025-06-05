@@ -1,0 +1,267 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.header h1 {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.balance-card {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.balance-amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.transaction-form,
+.info-box {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    padding: 25px;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.info-box {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.transaction-form .card-body {
+    padding: 0;
+}
+
+.info-box::before {
+    content: "";
+    display: block;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: -10px 0 25px 0;
+}
+
+@media (max-width: 768px) {
+    .transaction-form {
+        margin-bottom: 20px;
+    }
+    .info-box {
+        margin-top: 20px;
+    }
+}
+
+.transaction-form {
+    margin-bottom: 30px;
+}
+
+.info-box {
+    margin-top: 30px;
+}
+
+.form-control {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-custom {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-deposit:hover,
+.btn-withdraw:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.alert {
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.video-overlay,
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.video-overlay {
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.video-background {
+    z-index: -1;
+    overflow: hidden;
+}
+
+.video-background video {
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.video-container {
+    width: 400px;
+    height: 300px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(39, 174, 96, 0.5);
+}
+
+.money-rain,
+.money-disappear {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.money-bill,
+.money-bill-withdraw {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.money-bill {
+    background: #2ecc71;
+    border: 2px solid #27ae60;
+    animation: fall 2s linear infinite;
+}
+
+.money-bill-withdraw {
+    background: #c0392b;
+    border: 2px solid #e74c3c;
+    animation: disappear 1.5s ease-in forwards;
+}
+
+.money-bill:before {
+    content: '€';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-50px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(350px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes disappear {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translateY(-100px);
+        opacity: 0;
+    }
+}
+
+.video-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: center;
+    z-index: 10;
+}
+
+.video-text h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: white;
+    animation: bounce 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-20px); }
+}
+
+.close-video {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.close-video:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.withdraw-animation {
+    background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+    box-shadow: 0 20px 60px rgba(231, 76, 60, 0.5) !important;
+}
+
+.container {
+    position: relative;
+    z-index: 2;
+}
