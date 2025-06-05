@@ -227,5 +227,22 @@ function showAlert(message, type) {
         }
     }, 5000);
 }
-
+//video background
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('bgVideo');
+    
+    
+    const playPromise = video.play();
+    
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            video.muted = true;
+            video.play();
+        });
+    }
+    //controllo vari dispositivi
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        video.src = './resources/videos/bank-bg-mobile.mp4';
+    }
+});
 document.addEventListener('DOMContentLoaded', init);
