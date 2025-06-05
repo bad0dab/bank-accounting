@@ -12,20 +12,13 @@ const depositBtn = document.getElementById('deposit-btn');
 const withdrawBtn = document.getElementById('withdraw-btn');
 const alertContainer = document.getElementById('alert-container');
 
-// start pagina
-function init() {
-    updateDisplay();
-    updateLastUpdate();
 
-    depositBtn.addEventListener('click', () => handleTransaction('deposit'));
-    withdrawBtn.addEventListener('click', () => handleTransaction('withdraw'));
-
-    checkSundayRestriction();
-}
 
 // aggiorna saldo
 function updateDisplay() {
-    balanceElement.textContent = `€ ${accountData.balance.toFixed(2).replace('.', ',')}`;
+    fetch("http://localhost:3000/account").then(r => r.json()).then(r => {
+        balanceElement.textContent = `€ ${r["balance"]}`;
+    })
 }
 
 // aggiorna orario
@@ -34,87 +27,69 @@ function updateLastUpdate() {
     lastUpdateElement.textContent = now.toLocaleString('it-IT');
 }
 
-// controlla domenica
-function checkSundayRestriction() {
-    const today = new Date();
-    const isSunday = today.getDay() === 0;
 
-    if (isSunday) {
-        depositBtn.disabled = true;
-        withdrawBtn.disabled = true;
-        showAlert('Le operazioni bancarie non sono disponibili la domenica.', 'warning');
-    } else {
-        depositBtn.disabled = false;
-        withdrawBtn.disabled = false;
-    }
-}
 
 // gestione transazioni
 function handleTransaction(type) {
-    const amount = parseFloat(amountInput.value);
+    const data = {amount: parseFloat(amountInput.value)}
 
-    // controllo dell'input
-    if (!amount || amount <= 0) {
-        showAlert('Inserisci un importo valido maggiore di zero.', 'danger');
-        return;
-    }
+    fetch(`http://localhost:3000/account/${type}`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+        body: JSON.stringify(data)
+    }).then(r => r.json()).then(r => {
+        
+        if(r["success"]){
 
-    // controllo domenica
-    if (new Date().getDay() === 0) {
-        showAlert('Le operazioni non sono permesse la domenica.', 'warning');
-        return;
-    }
+               
+            if (type === 'deposit') {
+                const overlay = document.getElementById('videoOverlay');
+                const depositAmountText = document.getElementById('depositAmount');
+                
+                // deposito
+                depositAmountText.textContent = formatCurrency(data.amount);
 
-    if (type === 'deposit') {
-        handleDeposit(amount);
-    } else if (type === 'withdraw') {
-        handleWithdraw(amount);
-    }
+                createMoneyRain();
+                overlay.style.display = 'flex';
+
+            }
+            else{
+                const overlay = document.getElementById('withdrawOverlay');
+                const withdrawAmountText = document.getElementById('withdrawAmount');
+                
+                withdrawAmountText.textContent = formatCurrency(data.amount);
+                
+                createMoneyDisappear();
+                overlay.style.display = 'flex';
+            }
+
+            setTimeout(() => {
+                type == "deposit" ? closeVideo() : closeWithdrawVideo();
+                
+                showAlert(`${type == "deposit" ? "Deposito" : "Prelievo"} di ${formatCurrency(data.amount)} effettuato con successo!`, type=="deposit" ? "success" : "danger");
+                
+                updateDisplay()
+                updateLastUpdate()
+
+            }, 1000);
+        }
+
+        else{
+            showAlert(r["error"], 'danger');
+        }
+
+        amountInput.value = '';
+    })
 }
-// gestione deposito
-function handleDeposit(amount) {
-    // controlo min/max
-    if (amount < 200) {
-        showAlert('Il deposito minimo è di €200!', 'danger');
-        return;
-    }
 
-    if (amount > 2000) {
-        showAlert('Il deposito massimo è di €2,000!', 'danger');
-        return;
-    }
-
-    // new saldo
-    accountData.balance += amount;
-    updateDisplay();
-    updateLastUpdate();
-    amountInput.value = '';
-
-    // animazione
-    playDepositVideo(amount);
-}
 
 //formato valuta
 function formatCurrency(amount) {
     return '€ ' + amount.toFixed(2).replace('.', ',');
 }
 
-function playDepositVideo(amount) {
-    const overlay = document.getElementById('videoOverlay');
-    const depositAmountText = document.getElementById('depositAmount');
-    
-    // deposito
-    depositAmountText.textContent = formatCurrency(amount);
-
-    createMoneyRain();
-
-    overlay.style.display = 'flex';
-
-    setTimeout(() => {
-        closeVideo();
-        showAlert(`Deposito di ${formatCurrency(amount)} effettuato con successo!`, 'success');
-    }, 3000);
-}
 // rain of money
 function createMoneyRain() {
     const moneyRain = document.getElementById('moneyRain');
@@ -134,60 +109,7 @@ function closeVideo() {
     const overlay = document.getElementById('videoOverlay');
     overlay.style.display = 'none';
 }
-// gestione prelievo
-function handleWithdraw(amount) {
-    // saldo < 0 con prelievo
-    if (amount > accountData.balance) {
-        showAlert('Saldo insufficiente per effettuare il prelievo.', 'danger');
-        return;
-    }
 
-    // limite giornaliero (<1000)
-    const today = new Date().toDateString();
-    if (accountData.lastWithdrawDate !== today) {
-        accountData.dailyWithdrawn = 0;
-        accountData.lastWithdrawDate = today;
-    }
-
-    if (accountData.dailyWithdrawn + amount > 1000) {
-        const remaining = 1000 - accountData.dailyWithdrawn;
-        showAlert(`Limite giornaliero di prelievo superato. Puoi prelevare ancora €${remaining.toFixed(2).replace('.', ',')}.`, 'danger');
-        return;
-    }
-
-    // saldo < 0
-    if (accountData.balance - amount < 0) {
-        showAlert('Il saldo non può diventare negativo.', 'danger');
-        return;
-    }
-
-    // prelievo
-    accountData.balance -= amount;
-    accountData.dailyWithdrawn += amount;
-    updateDisplay();
-    updateLastUpdate();
-    amountInput.value = '';
-
-    //video animation
-    playWithdrawVideo(amount);
-
-    showAlert(`Prelievo di €${amount.toFixed(2).replace('.', ',')} effettuato con successo!`, 'success');
-}
-//animazione prelievo
-function playWithdrawVideo(amount) {
-    const overlay = document.getElementById('withdrawOverlay');
-    const withdrawAmountText = document.getElementById('withdrawAmount');
-    
-    withdrawAmountText.textContent = formatCurrency(amount);
-    createMoneyDisappear();
-
-    overlay.style.display = 'flex';
-
-    setTimeout(() => {
-        closeWithdrawVideo();
-        showAlert(`Prelievo di ${formatCurrency(amount)} effettuato con successo!`, 'success');
-    }, 3000);
-}
 //scompaiono i soldi
 function createMoneyDisappear() {
     const moneyDisappear = document.getElementById('moneyDisappear');
@@ -229,8 +151,8 @@ function showAlert(message, type) {
 }
 //video background
 document.addEventListener('DOMContentLoaded', function() {
+
     const video = document.getElementById('bgVideo');
-    
     
     const playPromise = video.play();
     
@@ -244,5 +166,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         video.src = './resources/videos/bank-bg-mobile.mp4';
     }
+
+
+
+    updateDisplay();
+    updateLastUpdate();
+
+    depositBtn.addEventListener('click', () => handleTransaction('deposit'));
+    withdrawBtn.addEventListener('click', () => handleTransaction('withdraw'));
+
+
 });
-document.addEventListener('DOMContentLoaded', init);

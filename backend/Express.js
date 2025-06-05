@@ -2,7 +2,10 @@ const express = require('express');
 const { Client } = require('pg');
 
 const app = express();
+const cors = require('cors');
+
 app.use(express.json());
+app.use(cors());
 
 const con = new Client({
     host: 'localhost',
@@ -27,7 +30,7 @@ app.get('/account', async (req, res) => {
             balance: account.balance
         });
     } catch (error) {
-        res.status(500).json({
+        res.json({
             success: false,
             error: 'Failed to fetch account.'
         });
@@ -38,7 +41,7 @@ app.post('/account/deposit', async (req, res) => {
     const { amount } = req.body;
 
     try {
-        if (amount <= 0 || amount <= 200 || amount > 1000) {
+        if (amount <= 200 || amount > 1000) {
             throw new Error('Errore di depositazione.');
         }
 
@@ -46,15 +49,14 @@ app.post('/account/deposit', async (req, res) => {
         let currentBalance = result.rows[0].balance;
         const newBalance = currentBalance + amount;
 
-        await con.query('UPDATE account SET balance = newBalance WHERE id = 1', [newBalance]);
+        await con.query(`UPDATE account SET balance = ${newBalance} WHERE id = 1`);
 
         res.json({
             success: true,
             message: `Deposited ${amount}`,
-            balance: newBalance
         });
     } catch (error) {
-        res.status(400).json({
+        res.json({
             success: false,
             error: error.message
         });
@@ -76,16 +78,19 @@ app.post('/account/withdraw', async (req, res) => {
             throw new Error('Fondi insufficienti.');
         }
 
+        if(amount > 1000){
+            throw new Error('Limiti non rispettati');
+        }
+
         const newBalance = currentBalance - amount;
-        await con.query('UPDATE account SET balance = newBalance WHERE id = 1', [newBalance]);
+        await con.query(`UPDATE account SET balance = ${newBalance} WHERE id = 1`);
 
         res.json({
             success: true,
             message: `Withdrew ${amount}`,
-            balance: newBalance
         });
     } catch (error) {
-        res.status(400).json({
+        res.json({
             success: false,
             error: error.message
         });
