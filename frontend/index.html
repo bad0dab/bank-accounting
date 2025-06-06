@@ -29,25 +29,12 @@
                     <div class="success-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <h2>Deposito Riuscito!</h2>
-                    <p id="depositAmount">€ 0.00</p>
+                    <h2 id="actionName"></h2>
+                    <p id="actionAmount">... €</p>
                 </div>
             </div>
         </div>
-        <!--prelievo animation-->
-        <div class="video-overlay" id="withdrawOverlay">
-            <div class="video-container withdraw-animation">
-                <button class="close-video" onclick="closeWithdrawVideo()">&times;</button>
-                <div class="money-disappear" id="moneyDisappear"></div>
-                <div class="video-text">
-                    <div class="success-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h2>Prelievo Riuscito!</h2>
-                    <p id="withdrawAmount">€ 0.00</p>
-                </div>
-            </div>
-        </div>
+
         <!-- header -->
         <div class="header">
             <h1><i class="fas fa-university me-3"></i>Banca Digitale</h1>
@@ -102,16 +89,16 @@
                     <div class="row">
                         <div class="col-md-6">
                             <ul>
-                                <li>Prelievo massimo giornaliero: €1,000</li>
-                                <li>Deposito minimo: €200</li>
-                                <li>Deposito massimo: €2,000</li>
+                                <li>Prelievo massimo giornaliero: 1.000 €</li>
+                                <li>Deposito minimo: 200 €</li>
+                                <li>Deposito massimo: 2.000 €</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <ul>
                                 <li>Operazioni non permesse la domenica</li>
                                 <li>Il saldo non può essere negativo</li>
-                                <li>Non è possibile depositare €0</li>
+                                <li>Non è possibile depositare 0 €</li>
                             </ul>
                         </div>
                     </div>

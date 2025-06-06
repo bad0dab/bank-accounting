@@ -1,10 +1,3 @@
-// Dati account
-let accountData = {
-    balance: 1500.00,
-    dailyWithdrawn: 0,
-    lastWithdrawDate: null
-};
-
 const balanceElement = document.getElementById('balance');
 const lastUpdateElement = document.getElementById('last-update');
 const amountInput = document.getElementById('amount');
@@ -12,12 +5,13 @@ const depositBtn = document.getElementById('deposit-btn');
 const withdrawBtn = document.getElementById('withdraw-btn');
 const alertContainer = document.getElementById('alert-container');
 
-
+const overlay = document.getElementById('videoOverlay');
+const actions = {"deposit" : "Deposito", "withdraw" : "Prelievo"}
 
 // aggiorna saldo
 function updateDisplay() {
     fetch("http://localhost:3000/account").then(r => r.json()).then(r => {
-        balanceElement.textContent = `€ ${r["balance"]}`;
+        balanceElement.textContent = `€ ${r["balance"].toFixed(2)}`;
     })
 }
 
@@ -38,42 +32,27 @@ function handleTransaction(type) {
     headers: {
         'Content-Type': 'application/json'
     },
-        body: JSON.stringify(data)
+    body: JSON.stringify(data)
     }).then(r => r.json()).then(r => {
         
         if(r["success"]){
+            
+            // deposito
+            document.getElementById('actionName').textContent = `${actions[type]} Riuscito!` 
+            document.getElementById('actionAmount').textContent = formatCurrency(data.amount);
 
-               
-            if (type === 'deposit') {
-                const overlay = document.getElementById('videoOverlay');
-                const depositAmountText = document.getElementById('depositAmount');
-                
-                // deposito
-                depositAmountText.textContent = formatCurrency(data.amount);
-
-                createMoneyRain();
-                overlay.style.display = 'flex';
-
-            }
-            else{
-                const overlay = document.getElementById('withdrawOverlay');
-                const withdrawAmountText = document.getElementById('withdrawAmount');
-                
-                withdrawAmountText.textContent = formatCurrency(data.amount);
-                
-                createMoneyDisappear();
-                overlay.style.display = 'flex';
-            }
+            createMoneyRain();
+            overlay.style.display = 'flex';
 
             setTimeout(() => {
-                type == "deposit" ? closeVideo() : closeWithdrawVideo();
+                closeVideo()
                 
-                showAlert(`${type == "deposit" ? "Deposito" : "Prelievo"} di ${formatCurrency(data.amount)} effettuato con successo!`, type=="deposit" ? "success" : "danger");
+                showAlert(`${actions[type]} di ${formatCurrency(data.amount)} effettuato con successo!`, "success");
                 
                 updateDisplay()
                 updateLastUpdate()
 
-            }, 1000);
+            }, 2000);
         }
 
         else{
@@ -106,7 +85,6 @@ function createMoneyRain() {
 }
 
 function closeVideo() {
-    const overlay = document.getElementById('videoOverlay');
     overlay.style.display = 'none';
 }
 
@@ -125,10 +103,7 @@ function createMoneyDisappear() {
     }
 }
 
-function closeWithdrawVideo() {
-    const overlay = document.getElementById('withdrawOverlay');
-    overlay.style.display = 'none';
-}
+
 // alert vari
 function showAlert(message, type) {
     const alertDiv = document.createElement('div');
@@ -147,7 +122,7 @@ function showAlert(message, type) {
         if (alertDiv.parentNode) {
             alertDiv.remove();
         }
-    }, 5000);
+    }, 2000);
 }
 //video background
 document.addEventListener('DOMContentLoaded', function() {
