@@ -31,9 +31,9 @@ con.connect()
     .catch(err => console.error('DB connection error:', err));
 
 
-function getCurrentDate(){
-    return new Date().toLocaleDateString()
-}
+function getCurrentDate(){ return new Date().toLocaleDateString() }
+
+//function getCurrentDate() { return "07/06/2025" }
 
 
 function bankBasicCheck(amount){
@@ -90,7 +90,7 @@ app.post('/account/deposit', async (req, res) => {
         let currentBalance = (await getUserInfo(LOGGED_USERID))["balance"]
         const newBalance = currentBalance + amount;
 
-        addHistory(amount, "deposit")
+        await addHistory(amount, "deposit")
         await con.query("UPDATE account SET balance = $1 WHERE id = $2", [newBalance, LOGGED_USERID]);
 
         res.json({
@@ -140,7 +140,8 @@ app.post('/account/withdraw', async (req, res) => {
         }
 
         let dailyWithdraw = (await con.query("SELECT sum(amount) AS dailyWithdraw FROM transactions WHERE userid = $1 and actiontype='withdraw' and actiondate=$2", [LOGGED_USERID, getCurrentDate()])).rows[0]["dailywithdraw"]
-        
+        dailyWithdraw = dailyWithdraw == null ? 0 : dailyWithdraw
+
         if(dailyWithdraw+amount > limitVars.maxDailyWithdraw){
             throw new Error("Limite Giornaliero Raggiunto !");
         }
@@ -149,7 +150,7 @@ app.post('/account/withdraw', async (req, res) => {
         const newBalance = currentBalance - amount;
         await con.query("UPDATE account SET balance = $1 WHERE id = $2", [newBalance, LOGGED_USERID]);
 
-        addHistory(amount, "withdraw")
+        await addHistory(amount, "withdraw")
 
         res.json({
             success: true,
