@@ -62,7 +62,7 @@ app.get('/account', async (req, res) => {
         const account = await getUserInfo(LOGGED_USERID)
         res.json({
             success: true,
-            owner: account.owner,
+            username: account.username,
             balance: account.balance
         });
     } catch (error) {
@@ -79,7 +79,7 @@ app.post('/account/deposit', async (req, res) => {
     try {
         bankBasicCheck(amount)
         
-        if (amount <= limitVars.minDeposit) {
+        if (amount < limitVars.minDeposit) {
             throw new Error('Errore di Deposito. Importo inferiore al Limite');
         }
 
@@ -135,6 +135,9 @@ app.post('/account/withdraw', async (req, res) => {
             throw new Error('Fondi insufficienti.');
         }
 
+        if(amount > limitVars.maxDailyWithdraw){
+            throw new Error("Errore di Prelievo. Limite Massimo Raggiunto")
+        }
 
         let dailyWithdraw = (await con.query("SELECT sum(amount) AS dailyWithdraw FROM transactions WHERE userid = $1 and actiontype='withdraw' and actiondate=$2", [LOGGED_USERID, getCurrentDate()])).rows[0]["dailywithdraw"]
         

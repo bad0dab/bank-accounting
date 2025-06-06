@@ -12,10 +12,14 @@ const historyTable = document.querySelector("#history-table")
 const tbodyHistoryTable = historyTable.querySelector("tbody")
 const historyError = document.querySelector("#historyError")
 
+const userLabel = document.querySelector("#userLabel")
+
+
 // aggiorna saldo
-function updateBalance() {
+function updateUserInfo() {
     fetch("http://localhost:3000/account").then(r => r.json()).then(r => {
-        balanceElement.textContent = `€ ${r["balance"].toFixed(2)}`;
+        balanceElement.textContent = `€ ${formatCurrency(r["balance"])}`;
+        userLabel.textContent = r["username"]
     })
 }
 
@@ -40,7 +44,7 @@ function updatePaymentHistory(){
                     <tr>
                         <td class="text-center opacity-75">#${h['transaction_id']}</td>
                         <td class="text-center opacity-75">${h['actiondate']}</td>
-                        <td class="text-center opacity-75 fw-bold text-${h['actiontype'] == "deposit" ? "success" : "danger"}">${h['actiontype'] == "deposit" ? "+" : "-"} ${h['amount']} €</td>
+                        <td class="text-center opacity-75 fw-bold text-${h['actiontype'] == "deposit" ? "success" : "danger"}">${h['actiontype'] == "deposit" ? "+" : "-"} ${formatCurrency(h['amount'])}</td>
                     </tr>`
             })
         }
@@ -78,7 +82,7 @@ function handleTransaction(type) {
                 
                 showAlert(`${actions[type]} di ${formatCurrency(data.amount)} effettuato con successo!`, "success");
                 
-                updateBalance()
+                updateUserInfo()
                 updateLastUpdate()
                 updatePaymentHistory()
             }, 2500);
@@ -169,9 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.src = './resources/videos/bank-bg-mobile.mp4';
     }
 
-
-
-    updateBalance();
+    updateUserInfo();
     updateLastUpdate();
     updatePaymentHistory()
 
