@@ -46,12 +46,6 @@ function bankBasicCheck(amount){
     }
 }
 
-
-async function getUserInfo(id){
-    const result = await con.query('SELECT * FROM account WHERE id = $1', [id]);
-    return result.rows[0];
-}
-
 async function addHistory(amount, type){
     await con.query("INSERT INTO transactions (userid, amount, actiontype, actiondate) VALUES ($1, $2, $3, $4)", [LOGGED_USERID, amount, type, getCurrentDate()]);   
 }
@@ -59,7 +53,9 @@ async function addHistory(amount, type){
 // prende info account
 app.get('/account', async (req, res) => {
     try {
-        const account = await getUserInfo(LOGGED_USERID)
+        let account = await con.query('SELECT * FROM account WHERE id = $1', [LOGGED_USERID])
+        account = account.rows[0]
+
         res.json({
             success: true,
             username: account.username,
@@ -87,7 +83,9 @@ app.post('/account/deposit', async (req, res) => {
             throw new Error('Errore di Deposito. Importo superiore al Limite');
         }
 
-        let currentBalance = (await getUserInfo(LOGGED_USERID))["balance"]
+        let currentBalance = await con.query('SELECT * FROM account WHERE id = $1', [LOGGED_USERID])
+        currentBalance = currentBalance.rows[0]["balance"]
+        
         const newBalance = currentBalance + amount;
 
         await addHistory(amount, "deposit")
@@ -129,7 +127,8 @@ app.post('/account/withdraw', async (req, res) => {
 
         bankBasicCheck(amount)
 
-        const currentBalance = (await getUserInfo(LOGGED_USERID))["balance"]
+        let currentBalance = await con.query('SELECT * FROM account WHERE id = $1', [LOGGED_USERID])
+        currentBalance = currentBalance.rows[0]["balance"]
 
         if (amount > currentBalance) {
             throw new Error('Fondi insufficienti.');
@@ -154,6 +153,7 @@ app.post('/account/withdraw', async (req, res) => {
 
         res.json({
             success: true,
+            balance: dailyWithdraw
         });
     } catch (error) {
         res.json({
@@ -166,3 +166,5 @@ app.post('/account/withdraw', async (req, res) => {
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
 });
+
+module.exports = app;
