@@ -11,6 +11,13 @@ app.use(cors());
 const DISABLED_ACTION = "domenica"
 const LOGGED_USERID = 1
 
+const limitVars = {
+    "minDeposit" : 200,
+    "maxDeposit" : 2000,
+
+    "maxDailyWithdraw" : 1000
+}
+
 const con = new Client({
     host: 'localhost',
     user: 'postgres',
@@ -72,11 +79,11 @@ app.post('/account/deposit', async (req, res) => {
     try {
         bankBasicCheck(amount)
         
-        if (amount <= 200) {
+        if (amount <= limitVars.minDeposit) {
             throw new Error('Errore di Deposito. Importo inferiore al Limite');
         }
 
-        if (amount > 2000) {
+        if (amount > limitVars.maxDeposit) {
             throw new Error('Errore di Deposito. Importo superiore al Limite');
         }
 
@@ -84,7 +91,7 @@ app.post('/account/deposit', async (req, res) => {
         const newBalance = currentBalance + amount;
 
         addHistory(amount, "deposit")
-        await con.query("UPDATE account SET balance = $1 WHERE id = 1", [newBalance]);
+        await con.query("UPDATE account SET balance = $1 WHERE id = $2", [newBalance, LOGGED_USERID]);
 
         res.json({
             success: true,
@@ -100,16 +107,16 @@ app.post('/account/deposit', async (req, res) => {
 
 //dd/mm/yyyy
 app.get('/account/history', async (req, res) => {
-    try {        
+    try {  
+        const fetchHistory = (await con.query("SELECT * from transactions WHERE userid = $1", [LOGGED_USERID])).rows
         res.json({
             success: true,
-            // owner: account.owner,
-            // balance: account.balance
+            history: fetchHistory
         });
     } catch (error) {
         res.json({
             success: false,
-            error: 'Failed to fetch account.'
+            error: 'Failed to fetch history.'
         });
     }
 });
@@ -128,14 +135,16 @@ app.post('/account/withdraw', async (req, res) => {
             throw new Error('Fondi insufficienti.');
         }
 
-        const dailyWithdraw = ((await con.query("SELECT sum(amount) AS dailyWithdraw FROM transactions WHERE userid = $1 and actiontype='withdraw' and actiondate=$2", [LOGGED_USERID, getCurrentDate()])).rows[0]).dailywithdraw;
-        if(dailyWithdraw+amount > 1000){
-            throw new Error("Limite giornaliero raggiunto");
+
+        let dailyWithdraw = (await con.query("SELECT sum(amount) AS dailyWithdraw FROM transactions WHERE userid = $1 and actiontype='withdraw' and actiondate=$2", [LOGGED_USERID, getCurrentDate()])).rows[0]["dailywithdraw"]
+        
+        if(dailyWithdraw+amount > limitVars.maxDailyWithdraw){
+            throw new Error("Limite Giornaliero Raggiunto !");
         }
 
 
         const newBalance = currentBalance - amount;
-        await con.query("UPDATE account SET balance = $1 WHERE id = 1", [newBalance]);
+        await con.query("UPDATE account SET balance = $1 WHERE id = $2", [newBalance, LOGGED_USERID]);
 
         addHistory(amount, "withdraw")
 

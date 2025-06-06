@@ -8,8 +8,12 @@ const alertContainer = document.getElementById('alert-container');
 const overlay = document.getElementById('videoOverlay');
 const actions = {"deposit" : "Deposito", "withdraw" : "Prelievo"}
 
+const historyTable = document.querySelector("#history-table")
+const tbodyHistoryTable = historyTable.querySelector("tbody")
+const historyError = document.querySelector("#historyError")
+
 // aggiorna saldo
-function updateDisplay() {
+function updateBalance() {
     fetch("http://localhost:3000/account").then(r => r.json()).then(r => {
         balanceElement.textContent = `€ ${r["balance"].toFixed(2)}`;
     })
@@ -22,6 +26,31 @@ function updateLastUpdate() {
 }
 
 
+//aggiorna cronologia pagamenti
+function updatePaymentHistory(){
+    fetch("http://localhost:3000/account/history").then(r => r.json()).then(r => {
+        if(r["success"] && r["history"].length > 0){
+            historyTable.classList.remove("d-none")
+            historyError.classList.add("d-none")
+
+            tbodyHistoryTable.innerHTML = ""
+
+            r["history"].forEach(h => {
+                tbodyHistoryTable.innerHTML+= `
+                    <tr>
+                        <td class="text-center opacity-75">#${h['transaction_id']}</td>
+                        <td class="text-center opacity-75">${h['actiondate']}</td>
+                        <td class="text-center opacity-75 fw-bold text-${h['actiontype'] == "deposit" ? "success" : "danger"}">${h['actiontype'] == "deposit" ? "+" : "-"} ${h['amount']} €</td>
+                    </tr>`
+            })
+        }
+
+        else{
+            historyError.classList.remove("d-none")
+            historyTable.classList.add("d-none")
+        }
+    })
+}
 
 // gestione transazioni
 function handleTransaction(type) {
@@ -49,10 +78,10 @@ function handleTransaction(type) {
                 
                 showAlert(`${actions[type]} di ${formatCurrency(data.amount)} effettuato con successo!`, "success");
                 
-                updateDisplay()
+                updateBalance()
                 updateLastUpdate()
-
-            }, 2000);
+                updatePaymentHistory()
+            }, 2500);
         }
 
         else{
@@ -65,9 +94,7 @@ function handleTransaction(type) {
 
 
 //formato valuta
-function formatCurrency(amount) {
-    return '€ ' + amount.toFixed(2).replace('.', ',');
-}
+function formatCurrency(amount) { return `${amount.toFixed(2).replace('.', ',')} €` }
 
 // rain of money
 function createMoneyRain() {
@@ -122,7 +149,7 @@ function showAlert(message, type) {
         if (alertDiv.parentNode) {
             alertDiv.remove();
         }
-    }, 2000);
+    }, 2500);
 }
 //video background
 document.addEventListener('DOMContentLoaded', function() {
@@ -144,8 +171,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    updateDisplay();
+    updateBalance();
     updateLastUpdate();
+    updatePaymentHistory()
 
     depositBtn.addEventListener('click', () => handleTransaction('deposit'));
     withdrawBtn.addEventListener('click', () => handleTransaction('withdraw'));
